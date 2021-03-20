@@ -54,6 +54,38 @@ build:
 shell: build
 	docker run -it -v $(CURDIR)/tests/fixtures:/documents/ $(DOCKER_IMAGE_NAME_TO_TEST)
 
+make_deploy: make_deploy_amd64 make_deploy_armv6 
+	@echo "Hub username: $(DOCKERHUB_USERNAME)"
+	@echo "Image name: $(DOCKER_IMAGE_NAME)"
+	@echo "Image tag: $(DOCKER_IMAGE_TAG)"
+	@echo "Cur dir: $(CURDIR)"
+	docker manifest annotate \
+	 	--amend "$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim-armv6"	\
+	 	--amend "$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim-amd64" \
+		"$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim" \
+	
+	docker manifest push "$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim"
+
+make_deploy_armv6:
+	docker buildx build --progress plain \
+		--platform linux/arm/v6 \
+		--target main-slim \
+		--tag="$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim-armv6" \
+		$(CURDIR)
+
+make_deploy_amd64:
+	docker buildx build --progress plain \
+		--platform linux/amd64 \
+		--target main-slim \
+		--tag="$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim-amd64" \
+		$(CURDIR)
+
+	docker buildx build --progress plain \
+		--platform linux/amd64 \
+		--target main \
+		--tag="$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-amd64" \
+		$(CURDIR)
+
 test:
 	bats $(CURDIR)/tests/*.bats
 

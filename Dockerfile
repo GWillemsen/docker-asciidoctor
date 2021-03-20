@@ -20,6 +20,7 @@ ENV ASCIIDOCTOR_VERSION=${asciidoctor_version} \
   KRAMDOWN_ASCIIDOC_VERSION=${kramdown_asciidoc_version} \
   ASCIIDOCTOR_BIBTEX_VERSION=${asciidoctor_bibtex_version}
 
+RUN uname -a
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 # Haskell build for: erd
@@ -47,10 +48,10 @@ RUN cabal v2-update \
 
 
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
-# Final image
+# Simple
 # # # # # # # # # # # # # # # # # # # # # # # # # # # # # #
 
-FROM base AS main
+FROM base AS main-slim
 RUN echo "building main image" # keep here to help --cache-from along
 
 LABEL MAINTAINERS="Guillaume Scheibel <guillaume.scheibel@gmail.com>, Damien DUPORTAL <damien.duportal@gmail.com>"
@@ -121,6 +122,16 @@ RUN apk add --no-cache --virtual .pythonmakedepends \
     nwdiag \
     seqdiag \
   && apk del -r --no-cache .pythonmakedepends
+
+
+WORKDIR /documents
+VOLUME /documents
+
+CMD ["/bin/bash"]
+
+FROM main-slim as main
+
+LABEL MAINTAINERS="Guillaume Scheibel <guillaume.scheibel@gmail.com>, Damien DUPORTAL <damien.duportal@gmail.com>"
 
 COPY --from=build-haskell root/.cabal/bin/erd     /bin/
 
