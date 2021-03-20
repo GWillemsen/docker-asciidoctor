@@ -28,9 +28,9 @@ jobs:
           make build
           make test
           make README.md
-      - name: Deploy
-        if: github.event_name != 'pull_request'
-        run: make deploy-README.md deploy
-        env:
-          DOCKERHUB_SOURCE_TOKEN: ${{ secrets.DOCKERHUB_SOURCE_TOKEN }}
-          DOCKERHUB_TRIGGER_TOKEN: ${{ secrets.DOCKERHUB_TRIGGER_TOKEN }}
+      #- name: Deploy
+      #  if: github.event_name != 'pull_request'
+      #  run: make deploy-README.md deploy
+      #  env:
+      #    DOCKERHUB_SOURCE_TOKEN: ${{ secrets.DOCKERHUB_SOURCE_TOKEN }}
+      #    DOCKERHUB_TRIGGER_TOKEN: ${{ secrets.DOCKERHUB_TRIGGER_TOKEN }}
