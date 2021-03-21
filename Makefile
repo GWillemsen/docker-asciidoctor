@@ -54,37 +54,23 @@ build:
 shell: build
 	docker run -it -v $(CURDIR)/tests/fixtures:/documents/ $(DOCKER_IMAGE_NAME_TO_TEST)
 
-make_deploy: make_deploy_amd64 make_deploy_armv6 
+make_deploy:
 	@echo "Hub username: $(DOCKERHUB_USERNAME)"
 	@echo "Image name: $(DOCKER_IMAGE_NAME)"
 	@echo "Image tag: $(DOCKER_IMAGE_TAG)"
 	@echo "Cur dir: $(CURDIR)"
-	docker manifest annotate \
-	 	--amend "$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim-armv6"	\
-	 	--amend "$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim-amd64" \
-		"$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim" \
-	
-	docker manifest push "$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim"
+	#docker buildx create --name docker-multiarch
+	#docker buildx inspect --builder docker-multiarch --bootstrap
 
-make_deploy_armv6:
-	docker buildx build --progress plain \
-		--platform linux/arm/v6 \
+	docker buildx build \
+		--push \
+		--builder docker-multiarch \
+		--platform linux/amd64,linux/arm/v6,linux/arm/v7,linux/386 \
 		--target main-slim \
-		--tag="$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim-armv6" \
+		--tag="$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim" \
 		$(CURDIR)
 
-make_deploy_amd64:
-	docker buildx build --progress plain \
-		--platform linux/amd64 \
-		--target main-slim \
-		--tag="$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-slim-amd64" \
-		$(CURDIR)
-
-	docker buildx build --progress plain \
-		--platform linux/amd64 \
-		--target main \
-		--tag="$(DOCKERHUB_USERNAME)/$(DOCKER_IMAGE_NAME):$(DOCKER_IMAGE_TAG)-amd64" \
-		$(CURDIR)
+# 	docker buildx rm docker-buildarch
 
 test:
 	bats $(CURDIR)/tests/*.bats
